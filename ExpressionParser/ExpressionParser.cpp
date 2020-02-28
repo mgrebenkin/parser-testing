@@ -19,7 +19,7 @@ double ExpressionParser::parse_string(std::string string_expr, const std::map<st
     return result;
 }
 
-
+//xterm -T $TITLE -e
 void ExpressionParser::build_expression_tree(const ArgsSet& args){
 
     expression_tree_stack.push_back(make_expression(StringExpression(base_string)));
@@ -46,7 +46,7 @@ Expression ExpressionParser::make_expression(const StringExpression& base_string
     std::string::const_iterator operator_pos;
     while(!operator_found && current_operator != operators.end() ){
       operator_pos = base_string_expr.find_substr(current_operator->get_notation(),  base_string_expr.begin());
-      while(isWithinBrackets(operator_pos) && operator_pos != base_string.end()){
+      while(isWithinBrackets(operator_pos) && operator_pos != base_string_expr.end()){
 
           operator_pos = base_string_expr.find_substr(current_operator->get_notation(), operator_pos);
       }
