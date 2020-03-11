@@ -5,6 +5,8 @@
 #include <map>
 #include <functional>
 
+#include<iostream>
+#define DBLOG(s) std::cout<<"[DEBUG]: ["<<(s)<<" ]"<<std::endl;
 
 
 
@@ -63,10 +65,10 @@ private:
 
 class Expression{
 public:
-    Expression(OperatorPtr op, StringExpression left, StringExpression right ):
+    Expression(OperatorPtr op, StringExpression left, StringExpression right):
         pivot_operator(op), left_operand_expr(left), right_operand_expr(right), _hasOperator(true) {}
-    Expression(OperatorPtr op, StringExpression& right):
-        pivot_operator(op), left_operand_expr(right), right_operand_expr(right), _hasOperator(true) {}
+    Expression(OperatorPtr op, StringExpression right):
+        pivot_operator(op), left_operand_expr(right), right_operand_expr(right), _hasOperator(false) {}
     Expression(StringExpression right):
         left_operand_expr(right), right_operand_expr(right), _hasOperator(false) {}
     double evaluate(double left_operand, double right_operand);
@@ -121,7 +123,7 @@ private:
             return _brackets_level_map.at(pos-base_string.begin()) > 0;
         else
             return false;
-        
+
     }
 
 

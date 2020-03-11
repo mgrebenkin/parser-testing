@@ -2,7 +2,9 @@
 
 double Expression::evaluate(double left_operand, double right_operand){
     if(pivot_operator->is_binary()){
-        return pivot_operator->get_binary_operation()(left_operand, right_operand);
+        double res = 0;
+        res = pivot_operator->get_binary_operation()(left_operand, right_operand);
+        return res;
     }else{
         return pivot_operator->get_unary_operation()(right_operand);
     }
@@ -19,23 +21,20 @@ double ExpressionParser::parse_string(std::string string_expr, const std::map<st
     return result;
 }
 
-//xterm -T $TITLE -e
 void ExpressionParser::build_expression_tree(const ArgsSet& args){
+    expression_tree_stack.reserve(20);
 
     expression_tree_stack.push_back(make_expression(StringExpression(base_string)));
-    ExpressionPtr current_expression = expression_tree_stack.begin();
+    unsigned int i = 0;
 
-    while(current_expression != expression_tree_stack.end()){
-        if(current_expression->hasOperator()){
-            if(current_expression->get_pivot_operator()->is_binary()){
-                expression_tree_stack.push_back(make_expression(current_expression->get_left_operand()));
-                expression_tree_stack.push_back(make_expression(current_expression->get_right_operand()));
-            }else{
-                expression_tree_stack.push_back(make_expression(current_expression->get_right_operand()));
+    while(i < expression_tree_stack.size()){
+        if(expression_tree_stack[i].hasOperator()){
+            if(expression_tree_stack[i].get_pivot_operator()->is_binary()){
+                expression_tree_stack.push_back(make_expression(expression_tree_stack[i].get_left_operand()));
             }
-
+            expression_tree_stack.push_back(make_expression(expression_tree_stack[i].get_right_operand()));
         }
-        current_expression++;
+        i++;
     }
 
 }
@@ -55,7 +54,8 @@ Expression ExpressionParser::make_expression(const StringExpression& base_string
 
     }
 
-    if(current_operator == operators.end()) return Expression(base_string_expr);
+    if(current_operator == operators.end())
+        return Expression(base_string_expr);
     else{
       StringExpression right_expression(operator_pos+current_operator->get_notation().length(),
                                        base_string_expr.end());
@@ -83,6 +83,9 @@ double ExpressionParser::evaluate_expression_tree(){
             if(current_expression.get_pivot_operator()->is_binary()){
                 left_value = expression_value_queue.front();
                 expression_value_queue.pop();
+                DBLOG(std::to_string(left_value)+
+                    current_expression.get_pivot_operator()->get_notation()+
+                    std::to_string(right_value));
                 expression_value = current_expression.evaluate(left_value, right_value);
             }else{
                 expression_value = current_expression.evaluate(right_value, right_value);
@@ -115,6 +118,7 @@ StringExpression::StringExpression(const std::string& base_string){
         m_begin++;
         m_end--;
     }
+    DBLOG(get_string());
 }
 
 StringExpression::StringExpression(std::string::const_iterator _begin, std::string::const_iterator _end){
@@ -124,6 +128,7 @@ StringExpression::StringExpression(std::string::const_iterator _begin, std::stri
         m_begin++;
         m_end--;
     }
+    DBLOG(get_string());
 }
 
 std::string::const_iterator StringExpression::find_substr(
