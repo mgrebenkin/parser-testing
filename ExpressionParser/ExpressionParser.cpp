@@ -10,6 +10,22 @@ double Expression::evaluate(double left_operand, double right_operand){
     }
 }
 
+std::string Expression::get_string() const{
+    if(_hasOperator){
+        if(pivot_operator->is_binary()){
+            return "("+left_operand_expr.get_string()+")"+
+                    pivot_operator->get_notation()+
+                    "("+right_operand_expr.get_string()+")";
+        }
+        else{
+            return  pivot_operator->get_notation()+
+                    "("+right_operand_expr.get_string()+")";
+        }
+    }else{
+            return right_operand_expr.get_string();
+    }
+}
+
 
 
 double ExpressionParser::parse_string(std::string string_expr, const std::map<std::string,  double>& args){
@@ -22,8 +38,6 @@ double ExpressionParser::parse_string(std::string string_expr, const std::map<st
 }
 
 void ExpressionParser::build_expression_tree(const ArgsSet& args){
-    expression_tree_stack.reserve(20);
-
     expression_tree_stack.push_back(make_expression(StringExpression(base_string)));
     unsigned int i = 0;
 
@@ -83,9 +97,6 @@ double ExpressionParser::evaluate_expression_tree(){
             if(current_expression.get_pivot_operator()->is_binary()){
                 left_value = expression_value_queue.front();
                 expression_value_queue.pop();
-                DBLOG(std::to_string(left_value)+
-                    current_expression.get_pivot_operator()->get_notation()+
-                    std::to_string(right_value));
                 expression_value = current_expression.evaluate(left_value, right_value);
             }else{
                 expression_value = current_expression.evaluate(right_value, right_value);
@@ -118,7 +129,7 @@ StringExpression::StringExpression(const std::string& base_string){
         m_begin++;
         m_end--;
     }
-    DBLOG(get_string());
+    //DBLOG(get_string());
 }
 
 StringExpression::StringExpression(std::string::const_iterator _begin, std::string::const_iterator _end){
@@ -128,7 +139,7 @@ StringExpression::StringExpression(std::string::const_iterator _begin, std::stri
         m_begin++;
         m_end--;
     }
-    DBLOG(get_string());
+    //DBLOG(get_string());
 }
 
 std::string::const_iterator StringExpression::find_substr(

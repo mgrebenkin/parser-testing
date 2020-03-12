@@ -6,7 +6,7 @@
 #include <functional>
 
 #include<iostream>
-#define DBLOG(s) std::cout<<"[DEBUG]: ["<<(s)<<" ]"<<std::endl;
+#define DBLOG(s) std::cout<<"[DEBUG]: ["<<(s)<<"]"<<std::endl;
 
 
 
@@ -66,16 +66,17 @@ private:
 class Expression{
 public:
     Expression(OperatorPtr op, StringExpression left, StringExpression right):
-        pivot_operator(op), left_operand_expr(left), right_operand_expr(right), _hasOperator(true) {}
+        pivot_operator(op), left_operand_expr(left), right_operand_expr(right), _hasOperator(true) {DBLOG(get_string());}
     Expression(OperatorPtr op, StringExpression right):
-        pivot_operator(op), left_operand_expr(right), right_operand_expr(right), _hasOperator(false) {}
+        pivot_operator(op), left_operand_expr(right), right_operand_expr(right), _hasOperator(false) {DBLOG(get_string());}
     Expression(StringExpression right):
-        left_operand_expr(right), right_operand_expr(right), _hasOperator(false) {}
+        left_operand_expr(right), right_operand_expr(right), _hasOperator(false) {DBLOG(get_string());}
     double evaluate(double left_operand, double right_operand);
     bool hasOperator(){return _hasOperator;}
     OperatorPtr get_pivot_operator(){return pivot_operator;}
     StringExpression& get_left_operand(){return left_operand_expr;}
     StringExpression& get_right_operand(){return right_operand_expr;}
+    std::string get_string() const;
 private:
     Expression();
     OperatorPtr pivot_operator;
