@@ -10,7 +10,7 @@
 
 
 
-typedef std::string::iterator Position;
+typedef std::string::const_iterator Position;
 typedef double (UnaryFunctionPointer)(double);
 typedef double (BinaryFunctionPointer)(double, double);
 
@@ -47,18 +47,17 @@ typedef std::map<std::string, double> ArgsSet;
 class StringExpression{
 public:
     StringExpression(const std::string& base_string);
-    StringExpression(std::string::const_iterator _begin,
-                                       std::string::const_iterator _end);
-    std::string::const_iterator begin() const { return m_begin;}
-    std::string::const_iterator end() const { return m_end;}
-    std::string::const_iterator find_substr(
-                                            const std::string& s,
-                                            std::string::const_iterator search_start) const;
+    StringExpression(Position _begin,
+        Position _end);
+    Position begin() const { return m_begin;}
+    Positionr end() const { return m_end;}
+    Position find_operator_outside_brackets(OperatorPtr op) const;
     std::string get_string() const {return std::string(m_begin, m_end);}
+    bool isInBrackets();
 private:
     StringExpression();
-    std::string::const_iterator m_begin;
-    std::string::const_iterator m_end;
+    Position m_begin;
+    Position m_end;
 };
 
 
@@ -66,13 +65,15 @@ private:
 class Expression{
 public:
     Expression(OperatorPtr op, StringExpression left, StringExpression right):
-        pivot_operator(op), left_operand_expr(left), right_operand_expr(right), _hasOperator(true) {DBLOG(get_string());}
+        pivot_operator(op), left_operand_expr(left), right_operand_expr(right), m_hasOperator(true), m_isTerminal(false) {DBLOG(get_string());}
     Expression(OperatorPtr op, StringExpression right):
-        pivot_operator(op), left_operand_expr(right), right_operand_expr(right), _hasOperator(false) {DBLOG(get_string());}
+        pivot_operator(op), left_operand_expr(right), right_operand_expr(right), m_hasOperator(true), m_isTerminal(false) {DBLOG(get_string());}
     Expression(StringExpression right):
-        left_operand_expr(right), right_operand_expr(right), _hasOperator(false) {DBLOG(get_string());}
+        left_operand_expr(right), right_operand_expr(right), _hasOperator(false) 
+        m_isTerminal(*(right.begin()) == '( '&& *(right.end() - 1) == ')'){ DBLOG(get_string());}
     double evaluate(double left_operand, double right_operand);
-    bool hasOperator(){return _hasOperator;}
+    bool hasOperator(){return m_hasOperator;}
+    bool isTerminal() { return m_isTerminal; }
     OperatorPtr get_pivot_operator(){return pivot_operator;}
     StringExpression& get_left_operand(){return left_operand_expr;}
     StringExpression& get_right_operand(){return right_operand_expr;}
@@ -82,7 +83,8 @@ private:
     OperatorPtr pivot_operator;
     StringExpression left_operand_expr;
     StringExpression right_operand_expr;
-    bool _hasOperator;
+    bool m_hasOperator;
+    bool m_isTerminal;
 
 };
 typedef std::vector<Expression> ExpressionsSeq;

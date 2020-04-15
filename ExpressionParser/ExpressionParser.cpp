@@ -42,7 +42,7 @@ void ExpressionParser::build_expression_tree(const ArgsSet& args){
     unsigned int i = 0;
 
     while(i < expression_tree_stack.size()){
-        if(expression_tree_stack[i].hasOperator()){
+        if(expression_tree_stack[i].isTerminal()){
             if(expression_tree_stack[i].get_pivot_operator()->is_binary()){
                 expression_tree_stack.push_back(make_expression(expression_tree_stack[i].get_left_operand()));
             }
@@ -56,16 +56,10 @@ void ExpressionParser::build_expression_tree(const ArgsSet& args){
 Expression ExpressionParser::make_expression(const StringExpression& base_string_expr){
     bool operator_found = false;
     OperatorPtr current_operator = operators.begin();
-    std::string::const_iterator operator_pos;
-    while(!operator_found && current_operator != operators.end() ){
-      operator_pos = base_string_expr.find_substr(current_operator->get_notation(),  base_string_expr.begin());
-      while(isWithinBrackets(operator_pos) && operator_pos != base_string_expr.end()){
-
-          operator_pos = base_string_expr.find_substr(current_operator->get_notation(), operator_pos);
-      }
-      if(operator_pos == base_string_expr.end()) current_operator++;
-      else operator_found = true;
-
+    Position operator_pos = base_string_expr.find_operator_outside_brackets(current_operator);
+    while(operator_pos == base_string_expr.end() && current_operator != operators.end() ){
+      operator_pos = base_string_expr.find_outside_brackets(current_operator->get_notation(),  base_string_expr.begin());
+      current_operator++;
     }
 
     if(current_operator == operators.end())
@@ -112,19 +106,32 @@ double ExpressionParser::evaluate_expression_tree(){
     return expression_value;
 }
 
- void ExpressionParser::build_brackets_level_map(){
-        int brackets_level = 0;
-        for(auto c:base_string){
-            if(c == '(') brackets_level++;
-            else if(c == ')') brackets_level--;
-
-            _brackets_level_map.push_back(brackets_level);
-        }
+bool StringExpression::isInBrackets() {
+    if (*m_begin == '(') {
+        int brackets_balance = 1;
+        for (auto c = m_begin+1; c != m_end; c++)
     }
+}
+
+ //void ExpressionParser::build_brackets_level_map(){
+ //       int brackets_level = 0;
+ //       for(auto c:base_string){
+ //           if(c == '(') brackets_level++;
+ //           else if(c == ')') brackets_level--;
+
+ //           _brackets_level_map.push_back(brackets_level);
+ //       }
+ //   }
 
 StringExpression::StringExpression(const std::string& base_string){
     m_begin = base_string.begin();
     m_end = base_string.end();
+
+    /*for (auto c = m_begin; c != m_end-1; c++) {
+        if (*c == '(')) bracket_counter++;
+        if (*c == ')')) bracket_counter--;
+        if (bracket_counter == 0) hasRedunda
+    }*/
     while(*m_begin == '(' && *(m_end-1) == ')'){
         m_begin++;
         m_end--;
@@ -132,7 +139,7 @@ StringExpression::StringExpression(const std::string& base_string){
     //DBLOG(get_string());
 }
 
-StringExpression::StringExpression(std::string::const_iterator _begin, std::string::const_iterator _end){
+StringExpression::StringExpression(Position _begin, Position _end){
     m_begin = _begin;
     m_end = _end;
     while(*m_begin == '(' && *(m_end-1) == ')'){
@@ -142,12 +149,31 @@ StringExpression::StringExpression(std::string::const_iterator _begin, std::stri
     //DBLOG(get_string());
 }
 
-std::string::const_iterator StringExpression::find_substr(
-                                            const std::string& s,
-                                            std::string::const_iterator search_start) const{
-    size_t pos = get_string().find(s, search_start - m_begin);
-    if(pos == std::string::npos) return m_end;
-    else return m_begin+pos;
+//std::string::const_iterator StringExpression::find_substr(
+//                                            const std::string& s,
+//                                            std::string::const_iterator search_start) const{
+//    size_t pos = get_string().find(s, search_start - m_begin);
+//    if(pos == std::string::npos) return m_end;
+//    else return m_begin+pos;
+//}
+
+Position StringExpression::find_operator_outside_brackets(OperatorPtr op) const {
+    size_t substr_len = op->get_notation().length();
+    size_t chars_found;
+    int brackets_balance = 0;
+    if (m_end == m_begin) return m_end;
+    for (Position c = m_begin+1; c != m_end; c++) {
+        if (*c == '(') brackets_balance++;
+        else if (*c == ')') brackets_balance--;
+        else if (brackets_balance == 0) {
+            chars_found = 0;
+            while (*(c + chars_found) == *(s.begin() + chars_found) && brackets_balance == 0) {
+                chars_found++;
+            }
+            if (chars_found == substr_len) return c;
+        }
+    }
+    return m_end;
 }
 
 void ExpressionParser::CleanUpStringExpression(){
@@ -156,11 +182,6 @@ void ExpressionParser::CleanUpStringExpression(){
         base_string.erase(space_pos, 1);
         space_pos = base_string.find_first_of(' ');
     }
-
-    while(*(base_string.begin()) == '(' && *(base_string.end()-1) == ')'){
-          base_string.erase(base_string.begin());
-          base_string.erase(base_string.end()-1);
-          }
 
     return;
 }
