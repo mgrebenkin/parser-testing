@@ -9,8 +9,8 @@
 #define DBLOG(s) std::cout<<"[DEBUG]: ["<<(s)<<"]"<<std::endl;
 
 
-
 typedef std::string::const_iterator Position;
+typedef std::string::const_reverse_iterator RPosition;
 typedef double (UnaryFunctionPointer)(double);
 typedef double (BinaryFunctionPointer)(double, double);
 
@@ -56,8 +56,11 @@ public:
     bool isInBrackets();
 private:
     StringExpression();
+    
     Position m_begin;
     Position m_end;
+    RPosition m_rbegin;
+    RPosition m_rend;
 };
 
 

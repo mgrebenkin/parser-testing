@@ -165,27 +165,16 @@ bool StringExpression::isInBrackets() {
 StringExpression::StringExpression(const std::string& base_string){
     m_begin = base_string.begin();
     m_end = base_string.end();
-
-    /*for (auto c = m_begin; c != m_end-1; c++) {
-        if (*c == '(')) bracket_counter++;
-        if (*c == ')')) bracket_counter--;
-        if (bracket_counter == 0) hasRedunda
-    }*/
-    /*while(*m_begin == '(' && *(m_end-1) == ')'){
-        m_begin++;
-        m_end--;
-    }*/
-    //DBLOG(get_string());
+    m_rbegin = base_string.rbegin();
+    m_rend = base_string.rend();
 }
 
 StringExpression::StringExpression(Position _begin, Position _end){
     m_begin = _begin;
     m_end = _end;
-   /* while(*m_begin == '(' && *(m_end-1) == ')'){
-        m_begin++;
-        m_end--;
-    }*/
-    //DBLOG(get_string());
+    m_rbegin = RPosition(_end);
+    m_rend = RPosition(_begin);
+   
 }
 
 //std::string::const_iterator StringExpression::find_substr(
@@ -203,14 +192,15 @@ Position StringExpression::find_operator_outside_brackets(OperatorPtr op) const 
     size_t chars_found;
     int brackets_balance = 0;
     if (m_end == m_begin) return m_end;
-    for (Position c = (*m_begin) != '-'? m_begin:m_begin+1; c != m_end; c++) {  //'-' in the begining denotes negative and is not operator 
+    for (RPosition cr= m_rbegin; cr != m_rend; cr++) { 
+        Position c = cr.base()-1;
         if (*c == '(') brackets_balance++;
         else if (*c == ')') brackets_balance--;
-        else if (brackets_balance == 0) {
+        else if (brackets_balance == 0 && !(c == m_begin && *c == '-')) {  //'-' at the begining of expression is not an operator
             chars_found = 0;
             while (*(c + chars_found) == *(operator_notation.begin() + chars_found) && brackets_balance == 0) {
                 chars_found++;
-                if (chars_found == substr_len && c != m_begin) return c;
+                if (chars_found == substr_len) return c;
             }
         }
     }
