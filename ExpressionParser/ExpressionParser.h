@@ -50,7 +50,7 @@ public:
     StringExpression(Position _begin,
         Position _end);
     Position begin() const { return m_begin;}
-    Positionr end() const { return m_end;}
+    Position end() const { return m_end;}
     Position find_operator_outside_brackets(OperatorPtr op) const;
     std::string get_string() const {return std::string(m_begin, m_end);}
     bool isInBrackets();
@@ -65,18 +65,23 @@ private:
 class Expression{
 public:
     Expression(OperatorPtr op, StringExpression left, StringExpression right):
-        pivot_operator(op), left_operand_expr(left), right_operand_expr(right), m_hasOperator(true), m_isTerminal(false) {DBLOG(get_string());}
+        pivot_operator(op), left_operand_expr(left), right_operand_expr(right), m_hasOperator(true), m_isTerminal(false) {
+        DBLOG("New expression: " + get_string());}
     Expression(OperatorPtr op, StringExpression right):
-        pivot_operator(op), left_operand_expr(right), right_operand_expr(right), m_hasOperator(true), m_isTerminal(false) {DBLOG(get_string());}
+        pivot_operator(op), left_operand_expr(right), right_operand_expr(right), m_hasOperator(true), m_isTerminal(false) {
+        DBLOG("New expression: " + get_string());}
     Expression(StringExpression right):
-        left_operand_expr(right), right_operand_expr(right), _hasOperator(false) 
-        m_isTerminal(*(right.begin()) == '( '&& *(right.end() - 1) == ')'){ DBLOG(get_string());}
-    double evaluate(double left_operand, double right_operand);
-    bool hasOperator(){return m_hasOperator;}
-    bool isTerminal() { return m_isTerminal; }
-    OperatorPtr get_pivot_operator(){return pivot_operator;}
-    StringExpression& get_left_operand(){return left_operand_expr;}
-    StringExpression& get_right_operand(){return right_operand_expr;}
+        left_operand_expr(right), right_operand_expr(right), m_hasOperator(false), 
+        m_isTerminal(
+            !((*(right.begin()) == '-' || *(right.begin()) == '(') && *(right.end() - 1) == ')')
+        ){
+        DBLOG("New expression: " + get_string());}
+    double const evaluate(double left_operand, double right_operand);
+    bool hasOperator() const  {return m_hasOperator;}
+    bool isTerminal() const  { return m_isTerminal; }
+    OperatorPtr get_pivot_operator() const {return pivot_operator;}
+    StringExpression& get_left_operand()  {return left_operand_expr;}
+    StringExpression& get_right_operand()  {return right_operand_expr;}
     std::string get_string() const;
 private:
     Expression();
@@ -106,15 +111,15 @@ public:
 private:
     OperatorSet operators;
     ExpressionsSeq expression_tree_stack;
-
+    std::queue<double> expression_value_queue;
+    ArgsSet arguments;
     std::vector<int> _brackets_level_map;
     std::string base_string;
-
     void CleanUpStringExpression();
-    void build_expression_tree(const ArgsSet& args);
+    void build_expression_tree();
     Expression make_expression(const StringExpression& base_expr);
     double evaluate_expression_tree();
-    void build_brackets_level_map();
+    //void build_brackets_level_map();
     bool isWithinBrackets(size_t pos){
         if(pos<_brackets_level_map.size())
             return _brackets_level_map.at(pos) > 0;
@@ -128,6 +133,7 @@ private:
             return false;
 
     }
+    double evaluate_expression(const Expression& expr);
 
 
 
